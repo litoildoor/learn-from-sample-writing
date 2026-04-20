@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>雅思大作文精读助手 — IELTS Task 2 Analyzer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=block');
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; border-radius: 0 !important; }
+
+:root {
+  --ink:     #111111;
+  --paper:   #F9F9F7;
+  --muted:   #E5E5E0;
+  --red:     #CC0000;
+  --n100:    #F5F5F5;
+  --n200:    #E5E5E5;
+  --n400:    #A3A3A3;
+  --n500:    #737373;
+  --n600:    #525252;
+  --n700:    #404040;
+}
+
+html { font-size: 16px; }
+
+body {
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23111111' fill-opacity='0.04' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+.font-serif  { font-family: 'Playfair Display', 'Times New Roman', serif; }
+.font-body   { font-family: 'Lora', Georgia, serif; }
+.font-mono   { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+.font-sans   { font-family: 'Inter', 'Helvetica Neue', sans-serif; }
+
+/* ── Masthead / Header ── */
+.masthead-top {
+  border-bottom: 1px solid var(--ink);
+  padding: 6px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--n500);
+}
+.masthead-top .breaking {
+  background: var(--red);
+  color: #fff;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.masthead-main {
+  border-bottom: 4px solid var(--ink);
+  padding: 20px 32px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+}
+.masthead-main .tagline {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--n500);
+}
+.masthead-main h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+.masthead-main .edition {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--n500);
+  text-align: right;
+  line-height: 1.6;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.masthead-nav {
+  border-bottom: 1px solid var(--ink);
+  padding: 8px 32px;
+  display: flex;
+  gap: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.masthead-nav span {
+  padding: 4px 16px;
+  border-right: 1px solid var(--ink);
+  color: var(--n600);
+}
+.masthead-nav span:first-child { padding-left: 0; }
+.masthead-nav span.active { color: var(--ink); font-weight: 700; }
+.masthead-nav span.accent { color: var(--red); }
+
+/* ── Layout ── */
+.page-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px 64px;
+}
+
+/* ── Section title bar ── */
+.section-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 8px;
+  margin: 32px 0 20px;
+}
+.section-bar .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 3px 8px;
+}
+.section-bar h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+.section-bar .line { flex: 1; height: 1px; background: var(--ink); }
+
+/* ── Input Grid ── */
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--ink);
+  border-bottom: none;
+}
+.input-grid-full {
+  border: 1px solid var(--ink);
+  border-top: none;
+  border-bottom: none;
+}
+.input-cell {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--ink);
+}
+.input-cell:first-child { border-right: 1px solid var(--ink); }
+.input-cell-wide {
+  padding: 20px 20px 16px;
+  border: 1px solid var(--ink);
+  border-top: none;
+}
+.input-cell-wide + .input-cell-wide {
+  border-top: none;
+}
+
+.field-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--n500);
+  display: block;
+  margin-bottom: 8px;
+}
+.field-label span { color: var(--red); }
+
+input[type="password"],
+select,
+textarea {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--ink);
+  padding: 6px 0 8px;
+  color: var(--ink);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background 0.15s;
+}
+input[type="password"]:focus,
+select:focus,
+textarea:focus {
+  background: var(--n100);
+  padding-left: 6px;
+  padding-right: 6px;
+}
+textarea {
+  resize: vertical;
+  line-height: 1.6;
+  min-height: 100px;
+  font-family: 'Lora', serif;
+  font-size: 13px;
+}
+select { cursor: pointer; }
+select option { font-family: 'Inter', sans-serif; }
+
+/* ── Action bar ── */
+.action-bar {
+  border: 1px solid var(--ink);
+  border-top: none;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--n100);
+}
+
+.btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  min-height: 44px;
+  border: 1.5px solid var(--ink);
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn:hover:not(:disabled) {
+  background: var(--paper);
+  color: var(--ink);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--ink);
+}
+.btn-outline:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Loading / Progress ── */
+.loading-bar {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--n500);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.loading-bar.active { display: flex; }
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--n200);
+  border-top-color: var(--ink);
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.progress-track {
+  display: none;
+  border: 1px solid var(--ink);
+  border-top: none;
+  padding: 12px 20px;
+  gap: 0;
+  overflow-x: auto;
+}
+.progress-track.active { display: flex; }
+.step-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  border-right: 1px solid var(--ink);
+  color: var(--n400);
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.step-pill:last-child { border-right: none; }
+.step-pill.done { color: var(--n600); }
+.step-pill.active { background: var(--ink); color: var(--paper); font-weight: 700; }
+
+/* ── Alert ── */
+.alert {
+  display: none;
+  font-family: 'Lora', serif;
+  font-size: 13px;
+  padding: 12px 20px;
+  border: 1px solid var(--ink);
+  border-top: none;
+  border-left: 4px solid var(--red);
+  background: #fff5f5;
+  color: #7f0000;
+}
+.alert.show { display: block; }
+
+/* ══════════════════════════════════════════════
+   OUTPUT — Newspaper Layout (non-nested flat grid)
+══════════════════════════════════════════════ */
+#analysisOutput { display: none; }
+#analysisOutput.show { display: block; }
+
+/* Report masthead */
+.report-flag {
+  border: 1px solid var(--ink);
+  border-bottom: none;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--ink);
+  color: var(--paper);
+}
+.report-flag .flag-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+.report-flag .flag-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  opacity: 0.6;
+  letter-spacing: 0.08em;
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* The newspaper module grid — flat, no nesting */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  border-left: 1px solid var(--ink);
+  border-top: 1px solid var(--ink);
+}
+
+.module-card {
+  border-right: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Column spans */
+.col-12 { grid-column: span 12; }
+.col-8  { grid-column: span 8; }
+.col-4  { grid-column: span 4; }
+.col-6  { grid-column: span 6; }
+
+.module-card-header {
+  padding: 8px 16px;
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--n700);
+}
+.module-card-header .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+}
+.module-card-header .title {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.module-card-header .tag {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 2px 6px;
+  opacity: 0.7;
+}
+
+/* Warning module */
+.module-card-header.warn-header {
+  background: #7f0000;
+}
+/* Trophy module */
+.module-card-header.trophy-header {
+  background: #1a3a1a;
+}
+
+.module-card-body {
+  padding: 16px;
+}
+
+/* ── Content typography inside modules ── */
+.mc h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 14px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--muted);
+  color: var(--ink);
+}
+.mc h3:first-child { margin-top: 0; }
+.mc h4 {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--n500);
+  margin: 12px 0 4px;
+}
+.mc p {
+  font-family: 'Lora', serif;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--n600);
+  margin: 5px 0;
+}
+.mc ul, .mc ol {
+  margin: 6px 0 6px 0;
+  padding-left: 0;
+  list-style: none;
+}
+.mc li {
+  font-family: 'Lora', serif;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--n600);
+  padding: 3px 0 3px 14px;
+  position: relative;
+  border-bottom: 1px dotted var(--muted);
+}
+.mc li:last-child { border-bottom: none; }
+.mc li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--ink);
+  font-size: 9px;
+  top: 6px;
+}
+.mc ol li { counter-increment: list-counter; }
+.mc ol { counter-reset: list-counter; }
+.mc ol li::before {
+  content: counter(list-counter) ".";
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink);
+  top: 5px;
+}
+.mc blockquote {
+  border-left: 3px solid var(--ink);
+  padding: 8px 12px;
+  margin: 10px 0;
+  background: var(--n100);
+}
+.mc blockquote p {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink);
+  margin: 0;
+}
+.mc strong { font-weight: 700; color: var(--ink); }
+.mc em { font-style: italic; }
+.mc code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  background: var(--n200);
+  padding: 1px 4px;
+}
+.mc hr {
+  border: none;
+  border-top: 1px solid var(--muted);
+  margin: 12px 0;
+}
+
+/* Score dimension row — full width, 4 columns */
+.score-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: none;
+}
+.score-dim {
+  padding: 16px;
+  border-right: 1px solid var(--ink);
+}
+.score-dim:last-child { border-right: none; }
+.score-dim .dim-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--n500);
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.score-dim .dim-label .band {
+  font-size: 20px;
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  color: var(--ink);
+  line-height: 1;
+}
+
+/* Output action bar */
+.output-action-bar {
+  border: 1px solid var(--ink);
+  border-top: none;
+  padding: 12px 20px;
+  display: flex;
+  gap: 10px;
+  background: var(--n100);
+}
+
+/* ── Footer ── */
+.site-footer {
+  border-top: 4px solid var(--ink);
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--n500);
+  margin-top: 64px;
+}
+
+/* ── Ornamental divider ── */
+.ornament {
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  color: var(--n400);
+  letter-spacing: 1em;
+  padding: 20px 0 8px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .masthead-main { grid-template-columns: 1fr; text-align: center; gap: 8px; }
+  .masthead-main .tagline, .masthead-main .edition { display: none; }
+  .masthead-top, .masthead-nav { padding: 6px 16px; }
+  .page-wrap { padding: 0 16px 48px; }
+  .input-grid { grid-template-columns: 1fr; }
+  .input-cell:first-child { border-right: none; }
+  .col-8, .col-4, .col-6 { grid-column: span 12; }
+  .score-row { grid-template-columns: 1fr 1fr; }
+  .score-dim:nth-child(2) { border-right: none; }
+  .score-dim:nth-child(3) { border-right: 1px solid var(--ink); }
+  .site-footer { flex-direction: column; gap: 4px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ MASTHEAD ═══════════ -->
+<div class="masthead-top">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="breaking">精读工具</span>
+    <span>雅思 Task 2 · 结构化分析报告</span>
+  </div>
+  <span id="todayDate" class="font-mono"></span>
+</div>
+
+<div class="masthead-main">
+  <div class="tagline font-body">智能拆解范文结构，系统提炼高分语言</div>
+  <h1 class="font-serif">IELTS Task 2<br>精读助手</h1>
+  <div class="edition font-mono">
+    Vol. 1.0 &nbsp;|&nbsp; AI-Powered<br>
+    TR · CC · LR · GRA
+  </div>
+</div>
+
+<div class="masthead-nav">
+  <span class="active">分析报告</span>
+  <span>词汇提炼</span>
+  <span>结构解剖</span>
+  <span>评分维度</span>
+  <span class="accent">7+ 提升策略</span>
+</div>
+
+<!-- ═══════════ MAIN CONTENT ═══════════ -->
+<div class="page-wrap">
+
+  <!-- Section: 输入配置 -->
+  <div class="section-bar">
+    <span class="label">Step 01</span>
+    <h2 class="font-serif">配置 &amp; 输入</h2>
+    <div class="line"></div>
+  </div>
+
+  <!-- Row 1: API Key + Model -->
+  <div class="input-grid">
+    <div class="input-cell">
+      <label class="field-label font-mono">API Key <span>*</span></label>
+      <input type="password" id="apiKey" placeholder="sk-... 或 DeepSeek key">
+    </div>
+    <div class="input-cell">
+      <label class="field-label font-mono">模型选择 <span>*</span></label>
+      <select id="modelSelect">
+        <option value="deepseek-chat">DeepSeek Chat — 推荐，低成本</option>
+        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+        <option value="gpt-4">GPT-4</option>
+        <option value="gpt-4o">GPT-4o</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Row 2: Topic -->
+  <div class="input-grid-full">
+    <div class="input-cell-wide">
+      <label class="field-label font-mono">作文题目（英文）<span>*</span></label>
+      <textarea id="essayTopic" rows="3" placeholder="粘贴雅思大作文原题，例如：Some people think that governments should spend money on measures to save languages with few speakers from dying out, while others think it is a waste of financial resources. Discuss both views and give your own opinion."></textarea>
+    </div>
+  </div>
+
+  <!-- Row 3: Essay -->
+  <div class="input-grid-full">
+    <div class="input-cell-wide">
+      <label class="field-label font-mono">范文全文（英文，建议 ≤ 800 词）<span>*</span></label>
+      <textarea id="essayText" rows="11" placeholder="粘贴学生范文或官方范文……"></textarea>
+    </div>
+  </div>
+
+  <!-- Alert -->
+  <div class="alert" id="alertBox"></div>
+
+  <!-- Action bar -->
+  <div class="action-bar">
+    <button class="btn" id="analyzeBtn" onclick="startAnalysis()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      生成精读分析报告
+    </button>
+    <button class="btn btn-outline" id="exportBtn" onclick="exportPDF()" disabled>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      导出 PDF
+    </button>
+    <button class="btn btn-outline" id="copyBtn" onclick="copyReport()" disabled>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      复制文本
+    </button>
+    <div class="loading-bar" id="loadingBar">
+      <div class="spinner"></div>
+      <span class="font-mono">正在分析… 约 20–40 秒</span>
+    </div>
+  </div>
+
+  <!-- Progress track -->
+  <div class="progress-track" id="progressTrack">
+    <span class="step-pill" data-step="0">① 核心词汇</span>
+    <span class="step-pill" data-step="1">② 句子升级</span>
+    <span class="step-pill" data-step="2">③ 引言精析</span>
+    <span class="step-pill" data-step="3">④ 主体段解剖</span>
+    <span class="step-pill" data-step="4">⑤ 结论段</span>
+    <span class="step-pill" data-step="5">⑥ 观点补充</span>
+    <span class="step-pill" data-step="6">⑦ 评分维度</span>
+    <span class="step-pill" data-step="7">⑧ 易错预警</span>
+    <span class="step-pill" data-step="8">⑨ 7+ 提升</span>
+  </div>
+
+  <!-- ═══════════ OUTPUT ═══════════ -->
+  <div id="analysisOutput">
+
+    <div class="section-bar" style="margin-top:40px">
+      <span class="label">Report</span>
+      <h2 class="font-serif">精读分析报告</h2>
+      <div class="line"></div>
+    </div>
+
+    <!-- Report flag -->
+    <div class="report-flag">
+      <div>
+        <div class="flag-title font-serif" id="flagTitle">精读分析报告</div>
+        <div style="font-family:'Lora',serif;font-style:italic;font-size:12px;opacity:0.5;margin-top:4px" id="flagTopic"></div>
+      </div>
+      <div class="flag-meta font-mono" id="flagMeta"></div>
+    </div>
+
+    <!-- Newspaper module grid -->
+    <div class="module-grid" id="moduleGrid">
+      <!-- Populated by JS -->
+    </div>
+
+    <div class="output-action-bar">
+      <button class="btn btn-outline" onclick="exportPDF()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        导出 PDF
+      </button>
+      <button class="btn btn-outline" onclick="copyReport()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        复制纯文本
+      </button>
+    </div>
+
+  </div><!-- /#analysisOutput -->
+
+</div><!-- /.page-wrap -->
+
+<footer class="site-footer">
+  <span>IELTS Task 2 Analyzer · v1.0</span>
+  <span>API Key 仅在本地浏览器使用，不经过任何第三方服务器</span>
+  <span>单次约 2000–3000 tokens</span>
+</footer>
+
+<script>
+// ── Today date ──
+(function() {
+  const d = new Date();
+  document.getElementById('todayDate').textContent =
+    d.toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric'});
+})();
+
+// ═══════════════════════════════════════════════════════════
+// SYSTEM PROMPT
+// ═══════════════════════════════════════════════════════════
+function buildSystemPrompt() {
+  return `你是一位专业雅思写作教师，擅长从语言和结构两个维度深度解析雅思大作文范文。
+请严格按照以下9个模块输出完整分析报告，使用中文（术语可中英对照），语气指导性、积极，重在"可学之处"。
+每个模块必须引用范文中的具体句子（用引号标出），不得编造内容。
+
+输出格式要求：使用Markdown，各模块用"## 模块标题"区分，重要内容用**加粗**，引用句用>引用块。
+
+---
+
+## 模块1：核心词汇 / 短语 / 搭配 (LR)
+提取范文中10–15个高价值表达，分三类呈现：
+- **学术词汇**（Vocabulary for Academic Use）
+- **议论性短语**（Discourse Phrases）
+- **话题词搭配**（Topic Collocations）
+
+每条格式：【表达】— 中文释义 — 可替换/延伸用法示例
+
+---
+
+## 模块2：句子升级示范 (GRA + LR)
+选取范文中2–3个较简单的句子，展示"简单句 → 高分升级"全过程：
+- 原句（引用）
+- 问题诊断
+- 升级版本
+- 升级技巧说明（从句类型、非谓语、修辞等）
+
+---
+
+## 模块3：Introduction 精析
+1. **Paraphrase分析**：逐词/逐句说明范文如何改写题目（替换了哪些词、用了什么手法）
+2. **立场句结构**：分析thesis statement句式（条件句/让步句/直接陈述等）及立场明确程度
+
+---
+
+## 模块4：主体段结构解剖
+对每个主体段分别分析：
+- **Topic Sentence**（中心句）：是否明确、是否回应题目
+- **Explanation**（解释句）：逻辑展开方式
+- **Example/Evidence**（举例/论据）：具体性与说服力
+- **衔接手段**：段内和段间连接词使用
+- 若有**让步段（Concession）**，单独指出其结构
+
+---
+
+## 模块5：结论段分析
+- 是否有效回应题目（不引入新观点）
+- 重申立场的方式（Paraphrase还是直接重复？）
+- 结尾句是否有力度
+
+---
+
+## 模块6：观点拓展与语料补充
+基于该作文话题，补充2–3个范文未涉及但实用的论证角度，每个角度配1–2个地道英文短语。
+
+---
+
+## 模块7：整体评分维度点评
+按雅思四大维度分别点评（TR/CC/LR/GRA），每项给出：
+- 预估表现（如：7分水平）
+- 具体亮点（引用范文句子）
+- 一条改进建议
+
+---
+
+## 模块8：⚠️ 学生易错点预警
+针对该题目类型和中国学生的典型失误，列出3–5条具体预警：
+- 错误描述
+- 真实错例（如有）
+- 避免建议
+
+---
+
+## 模块9：🏆 雅思7+分数提升分析
+- 当前范文预估分数段（如：6.5–7分区间）
+- 与7.5+的差距分析（具体到句子层面）
+- 2–3个具体改写示例或写作策略，帮助学生突破到7+
+
+---
+
+请确保输出完整、结构清晰，每个模块都有实质内容，不可省略任何模块。`;
+}
+
+function buildUserPrompt(topic, essay) {
+  return `以下是雅思大作文题目和范文，请按要求进行完整精读分析：
+
+**【作文题目】**
+${topic}
+
+**【范文全文】**
+${essay}
+
+请严格按照9个模块输出完整分析报告。`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// Module definitions for the newspaper grid
+// ═══════════════════════════════════════════════════════════
+const MODULE_DEFS = [
+  { key:'mod1',  num:'01', title:'核心词汇 / 短语 / 搭配',    tag:'LR',       span:'col-6', headerClass:'' },
+  { key:'mod2',  num:'02', title:'句子升级示范',               tag:'GRA+LR',   span:'col-6', headerClass:'' },
+  { key:'mod3',  num:'03', title:'Introduction 精析',         tag:'TR+CC',    span:'col-4', headerClass:'' },
+  { key:'mod4',  num:'04', title:'主体段结构解剖',             tag:'CC',       span:'col-8', headerClass:'' },
+  { key:'mod5',  num:'05', title:'结论段分析',                 tag:'TR+CC',    span:'col-4', headerClass:'' },
+  { key:'mod6',  num:'06', title:'观点拓展与语料补充',         tag:'IDEAS',    span:'col-8', headerClass:'' },
+  { key:'mod7',  num:'07', title:'整体评分维度点评',           tag:'TR·CC·LR·GRA', span:'col-12', headerClass:'' },
+  { key:'mod8',  num:'08', title:'学生易错点预警',             tag:'WARNING',  span:'col-6', headerClass:'warn-header' },
+  { key:'mod9',  num:'09', title:'雅思 7+ 分数提升分析',       tag:'SCORE+',   span:'col-6', headerClass:'trophy-header' },
+];
+
+// ═══════════════════════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════════════════════
+function getApiUrl(model) {
+  return model.startsWith('deepseek')
+    ? 'https://api.deepseek.com/v1/chat/completions'
+    : 'https://api.openai.com/v1/chat/completions';
+}
+
+async function callLLM(apiKey, model, topic, essay) {
+  const resp = await fetch(getApiUrl(model), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: buildSystemPrompt() },
+        { role: 'user',   content: buildUserPrompt(topic, essay) }
+      ],
+      temperature: 0.5,
+      max_tokens: 4000
+    })
+  });
+
+  if (!resp.ok) {
+    let msg = `HTTP ${resp.status}`;
+    try { const e = await resp.json(); msg = e.error?.message || e.message || msg; } catch(_){}
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
+// ═══════════════════════════════════════════════════════════
+// Markdown renderer
+// ═══════════════════════════════════════════════════════════
+function renderMd(text) {
+  const lines = text.split('\n');
+  let html = '', inUl = false, inOl = false, inBq = false;
+
+  const closeUl  = () => { if (inUl)  { html += '</ul>';         inUl  = false; } };
+  const closeOl  = () => { if (inOl)  { html += '</ol>';         inOl  = false; } };
+  const closeBq  = () => { if (inBq)  { html += '</blockquote>'; inBq  = false; } };
+  const closeAll = () => { closeUl(); closeOl(); closeBq(); };
+
+  for (const raw of lines) {
+    const line = raw;
+
+    if (/^#{1,6} /.test(line)) {
+      closeAll();
+      const lvl = line.match(/^(#+)/)[1].length;
+      const txt = inline(line.replace(/^#+\s+/, ''));
+      const tag = lvl <= 2 ? 'h3' : 'h4';
+      html += `<${tag}>${txt}</${tag}>`;
+      continue;
+    }
+    if (/^> /.test(line)) {
+      closeUl(); closeOl();
+      if (!inBq) { html += '<blockquote>'; inBq = true; }
+      html += `<p>${inline(line.replace(/^> /, ''))}</p>`;
+      continue;
+    } else { closeBq(); }
+
+    if (/^---+$/.test(line.trim())) { closeAll(); html += '<hr>'; continue; }
+
+    if (/^[*\-] /.test(line)) {
+      closeOl(); closeBq();
+      if (!inUl) { html += '<ul>'; inUl = true; }
+      html += `<li>${inline(line.replace(/^[*\-] /, ''))}</li>`;
+      continue;
+    }
+    if (/^\d+\. /.test(line)) {
+      closeUl(); closeBq();
+      if (!inOl) { html += '<ol>'; inOl = true; }
+      html += `<li>${inline(line.replace(/^\d+\. /, ''))}</li>`;
+      continue;
+    }
+    closeAll();
+
+    if (line.trim() === '') { html += '<br>'; continue; }
+    html += `<p>${inline(line)}</p>`;
+  }
+  closeAll();
+  return html;
+}
+
+function inline(t) {
+  return t
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`(.+?)`/g,'<code>$1</code>');
+}
+
+// ═══════════════════════════════════════════════════════════
+// Split raw AI response into 9 sections
+// ═══════════════════════════════════════════════════════════
+function splitSections(raw) {
+  // Match ## lines as section boundaries
+  const sectionPattern = /^##\s+模块\d+[：:]/m;
+  const parts = raw.split(/(?=^##\s+模块\d+[：:])/m);
+  const sections = {};
+  parts.forEach((part, i) => {
+    const match = part.match(/^##\s+模块(\d+)/);
+    if (match) {
+      const idx = parseInt(match[1]) - 1;
+      // Strip the ## heading line itself, keep the rest
+      const body = part.replace(/^##[^\n]*\n/, '').trim();
+      sections[`mod${idx+1}`] = body;
+    }
+  });
+  return sections;
+}
+
+// Build the 9-module newspaper grid
+function buildModuleGrid(raw) {
+  const sections = splitSections(raw);
+  const grid = document.getElementById('moduleGrid');
+  grid.innerHTML = '';
+
+  MODULE_DEFS.forEach(def => {
+    const card = document.createElement('div');
+    card.className = `module-card ${def.span}`;
+
+    const body = sections[def.key] || '<p style="color:#999;font-style:italic;font-size:12px">（此模块内容未返回，可尝试重新生成）</p>';
+
+    card.innerHTML = `
+      <div class="module-card-header ${def.headerClass}">
+        <span class="num font-mono">${def.num}</span>
+        <span class="title font-serif">${def.title}</span>
+        <span class="tag font-mono">${def.tag}</span>
+      </div>
+      <div class="module-card-body mc">${renderMd(body)}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// Progress animation
+// ═══════════════════════════════════════════════════════════
+let _timer = null;
+function startProgress() {
+  const pills = document.querySelectorAll('.step-pill');
+  let idx = 0;
+  pills.forEach(p => { p.classList.remove('active','done'); });
+  document.getElementById('progressTrack').classList.add('active');
+  _timer = setInterval(() => {
+    if (idx > 0) pills[idx-1].classList.replace('active','done');
+    if (idx < pills.length) { pills[idx].classList.add('active'); idx++; }
+    else clearInterval(_timer);
+  }, 3200);
+}
+function stopProgress() {
+  if (_timer) clearInterval(_timer);
+  document.querySelectorAll('.step-pill').forEach(p => {
+    p.classList.remove('active'); p.classList.add('done');
+  });
+  setTimeout(() => { document.getElementById('progressTrack').classList.remove('active'); }, 600);
+}
+
+// ═══════════════════════════════════════════════════════════
+// Main
+// ═══════════════════════════════════════════════════════════
+async function startAnalysis() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const model  = document.getElementById('modelSelect').value;
+  const topic  = document.getElementById('essayTopic').value.trim();
+  const essay  = document.getElementById('essayText').value.trim();
+
+  clearError();
+  if (!apiKey)          return showError('请填写 API Key。');
+  if (!topic)           return showError('请填写作文题目。');
+  if (!essay)           return showError('请粘贴范文全文。');
+  if (essay.length < 100) return showError('范文内容太短，请确认粘贴完整。');
+
+  setLoading(true);
+  startProgress();
+
+  try {
+    const result = await callLLM(apiKey, model, topic, essay);
+    if (!result) throw new Error('AI 返回内容为空，请重试。');
+    stopProgress();
+    renderReport(topic, model, result);
+    setLoading(false);
+  } catch(err) {
+    stopProgress();
+    setLoading(false);
+    showError(friendlyErr(err.message));
+  }
+}
+
+function renderReport(topic, model, raw) {
+  const now = new Date();
+  const ds = now.toLocaleDateString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'});
+  const ts = now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+
+  document.getElementById('flagTitle').textContent = '精读分析报告';
+  document.getElementById('flagTopic').textContent = topic.substring(0,80) + (topic.length > 80 ? '…' : '');
+  document.getElementById('flagMeta').innerHTML = `生成时间：${ds} ${ts}<br>模型：${model}`;
+
+  buildModuleGrid(raw);
+
+  const out = document.getElementById('analysisOutput');
+  out.classList.add('show');
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  document.getElementById('exportBtn').disabled = false;
+  document.getElementById('copyBtn').disabled = false;
+  window._rawReport = raw;
+}
+
+function setLoading(on) {
+  document.getElementById('analyzeBtn').disabled = on;
+  document.getElementById('loadingBar').classList.toggle('active', on);
+}
+
+function showError(msg) {
+  const b = document.getElementById('alertBox');
+  b.className = 'alert show';
+  b.textContent = msg;
+}
+function clearError() {
+  document.getElementById('alertBox').className = 'alert';
+}
+
+function friendlyErr(msg) {
+  if (!msg) return '未知错误，请重试。';
+  if (/401|unauthorized|invalid api key/i.test(msg)) return 'API Key 无效或已过期，请检查后重新输入。';
+  if (/402|insufficient/i.test(msg))                 return 'API 账户余额不足，请充值后重试。';
+  if (/429|rate limit/i.test(msg))                   return '请求太频繁，已触发速率限制，请等待 30 秒后重试。';
+  if (/50[023]/i.test(msg))                          return 'AI 服务暂时不可用，请稍后重试。';
+  if (/failed to fetch|network/i.test(msg))          return '网络连接失败，请检查网络或 VPN 设置后重试。';
+  return `错误：${msg}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PDF Export
+// ═══════════════════════════════════════════════════════════
+function exportPDF() {
+  const src   = document.getElementById('analysisOutput');
+  const topic = document.getElementById('essayTopic').value.trim().substring(0, 30).replace(/\s+/g, '_');
+  const ts    = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
+
+  // ── Clone & bake all CSS-variable colours into inline styles ──────────────
+  // html2canvas does NOT resolve CSS custom properties, so we do it manually.
+  const CSS_VARS = {
+    '--ink':   '#111111', '--paper':  '#F9F9F7', '--muted':  '#E5E5E0',
+    '--red':   '#CC0000', '--n100':   '#F5F5F5', '--n200':   '#E5E5E5',
+    '--n400':  '#A3A3A3', '--n500':   '#737373', '--n600':   '#525252',
+    '--n700':  '#404040',
+  };
+
+  const clone = src.cloneNode(true);
+  clone.style.cssText = 'display:block !important; background:#F9F9F7; padding:16px; font-family:serif;';
+
+  // Replace var() in inline styles and walk all children
+  function bakeVars(el) {
+    const style = el.getAttribute('style') || '';
+    if (style.includes('var(')) {
+      let s = style;
+      Object.entries(CSS_VARS).forEach(([k, v]) => {
+        s = s.replace(new RegExp('var\\(' + k + '\\)', 'g'), v);
+      });
+      el.setAttribute('style', s);
+    }
+    // Inline the computed color + background-color for every element
+    const computed = window.getComputedStyle(
+      src.querySelector('[data-pdf-ref="' + el.dataset.pdfRef + '"]') || src
+    );
+    Array.from(el.children).forEach(bakeVars);
+  }
+
+  // Simpler approach: inline computed color/bg on every element in the clone
+  const srcAll   = Array.from(src.querySelectorAll('*'));
+  const cloneAll = Array.from(clone.querySelectorAll('*'));
+  srcAll.forEach((orig, i) => {
+    const dest = cloneAll[i];
+    if (!dest) return;
+    const cs = window.getComputedStyle(orig);
+    dest.style.color           = cs.color;
+    dest.style.backgroundColor = cs.backgroundColor;
+    dest.style.borderColor     = cs.borderColor;
+    dest.style.borderTopColor  = cs.borderTopColor;
+    dest.style.borderRightColor   = cs.borderRightColor;
+    dest.style.borderBottomColor  = cs.borderBottomColor;
+    dest.style.borderLeftColor    = cs.borderLeftColor;
+    dest.style.fontFamily      = cs.fontFamily;
+    dest.style.fontSize        = cs.fontSize;
+    dest.style.fontWeight      = cs.fontWeight;
+    dest.style.fontStyle       = cs.fontStyle;
+    dest.style.lineHeight      = cs.lineHeight;
+    dest.style.letterSpacing   = cs.letterSpacing;
+    dest.style.textTransform   = cs.textTransform;
+    dest.style.padding         = cs.padding;
+    dest.style.margin          = cs.margin;
+    dest.style.display         = cs.display;
+    dest.style.borderStyle     = cs.borderStyle;
+    dest.style.borderWidth     = cs.borderWidth;
+    dest.style.borderTopWidth  = cs.borderTopWidth;
+    dest.style.borderRightWidth  = cs.borderRightWidth;
+    dest.style.borderBottomWidth = cs.borderBottomWidth;
+    dest.style.borderLeftWidth   = cs.borderLeftWidth;
+  });
+
+  // Temporarily mount off-screen
+  clone.style.position = 'fixed';
+  clone.style.top      = '-9999px';
+  clone.style.left     = '0';
+  clone.style.width    = '960px';
+  clone.style.zIndex   = '-1';
+  document.body.appendChild(clone);
+
+  html2pdf().set({
+    margin: [8, 8, 8, 8],
+    filename: `IELTS精读_${topic}_${ts}.pdf`,
+    image: { type: 'jpeg', quality: 0.92 },
+    html2canvas: {
+      scale: 1.5,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      backgroundColor: '#F9F9F7',
+      windowWidth: 960,
+      scrollY: 0,
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] },
+  }).from(clone).save().finally(() => {
+    document.body.removeChild(clone);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// Copy
+// ═══════════════════════════════════════════════════════════
+function copyReport() {
+  if (!window._rawReport) return;
+  navigator.clipboard.writeText(window._rawReport).then(() => {
+    const btn = document.getElementById('copyBtn');
+    const orig = btn.innerHTML;
+    btn.textContent = '✓ 已复制';
+    setTimeout(() => { btn.innerHTML = orig; }, 2000);
+  }).catch(() => alert('复制失败，请手动选中文本复制。'));
+}
+</script>
+</body>
+</html>
